@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forscherlabor: Binomische Formeln</title>
+<style>
+:root{
+  --bg:#f6f4ee; --card:#ffffff; --ink:#1f2933; --muted:#5b6670; --line:#e2ddd2;
+  --c1:#2f6fdf; --c1s:#e5eefc; --c2:#d9534f; --c2s:#fbe7e6; --c3:#2e9e6a; --c3s:#e2f4ea;
+  --gold:#e8a31b; --ok:#2e9e6a; --bad:#d9534f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:#1f2933;color:#fff;padding:18px 16px 0}
+header h1{margin:0 auto 4px;max-width:900px;font-size:1.5rem}
+header p{margin:0 auto 12px;max-width:900px;color:#c9d1d9;font-size:.95rem}
+nav{max-width:900px;margin:0 auto;display:flex;gap:4px;overflow-x:auto}
+nav button{flex:0 0 auto;border:0;background:#33404d;color:#dfe6ec;padding:10px 14px;border-radius:10px 10px 0 0;font:inherit;font-size:.95rem;cursor:pointer}
+nav button.active{background:var(--bg);color:var(--ink);font-weight:600}
+main{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+section{display:none} section.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:0 0 16px}
+.card h2{margin:0 0 8px;font-size:1.25rem} .card h3{margin:0 0 8px;font-size:1.08rem}
+.lab{border-left:6px solid var(--accent,#2f6fdf)}
+.s1{--accent:var(--c1);--soft:var(--c1s)} .s2{--accent:var(--c2);--soft:var(--c2s)} .s3{--accent:var(--c3);--soft:var(--c3s)}
+.tag{display:inline-block;background:var(--soft,#eee);color:var(--accent,#333);font-weight:700;font-size:.8rem;padding:2px 10px;border-radius:99px;margin-bottom:6px}
+.muted{color:var(--muted)}
+.task{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;margin:10px 0;background:#fcfbf8}
+.task.done{background:#eef8f2;border-color:#bfe3cd}
+.expr{font-size:1.2rem;font-weight:600;white-space:nowrap}
+.ans{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:1.15rem}
+.ans input{width:58px;font:inherit;font-size:1.1rem;padding:4px 6px;border:2px solid #c9c2b4;border-radius:8px;text-align:center}
+.ans input:focus{outline:none;border-color:var(--accent,#2f6fdf)}
+.ans input.term{width:260px;max-width:100%;text-align:left;padding:6px 10px}
+.sign{width:34px;height:34px;border-radius:8px;border:2px solid #c9c2b4;background:#fff;font:inherit;font-size:1.2rem;font-weight:700;cursor:pointer;line-height:1}
+.lbl{font-style:italic;margin-right:4px}
+.btn{border:0;background:var(--accent,#2f6fdf);color:#fff;font:inherit;font-weight:600;padding:8px 14px;border-radius:9px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent,#2f6fdf);border:2px solid var(--accent,#2f6fdf);padding:6px 12px}
+.btn:disabled{opacity:.45;cursor:default}
+.fb{width:100%;font-size:.95rem;min-height:1.4em}
+.fb.ok{color:var(--ok);font-weight:600} .fb.bad{color:var(--bad)}
+.tip{width:100%;font-size:.95rem;background:#fff8e6;border:1px dashed var(--gold);border-radius:8px;padding:8px 10px;display:none}
+.formula{font-size:1.5rem;font-weight:700;text-align:center;padding:14px;border-radius:12px;background:var(--soft,#eef);color:var(--accent,#333);margin:10px 0}
+.locked{opacity:.45;pointer-events:none;filter:grayscale(.6)}
+.mc{display:flex;flex-direction:column;gap:6px;margin:8px 0 14px}
+.mc button{text-align:left;font:inherit;padding:9px 12px;border-radius:9px;border:2px solid var(--line);background:#fff;cursor:pointer}
+.mc button.right{border-color:var(--ok);background:#eef8f2} .mc button.wrong{border-color:var(--bad);background:#fdeceb}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.levels button{border:2px solid var(--accent);background:#fff;color:var(--accent);font:inherit;font-weight:600;padding:6px 12px;border-radius:99px;cursor:pointer}
+.levels button.on{background:var(--accent);color:#fff}
+.stars{font-size:1.3rem;letter-spacing:2px;color:var(--gold)}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.stationcard{cursor:pointer}
+.stationcard .formula{font-size:1.15rem}
+svg text{font-family:inherit}
+table{border-collapse:collapse;width:100%} td,th{border:1px solid var(--line);padding:8px;text-align:left}
+input[type=range]{width:160px}
+.num{width:64px;font:inherit;padding:4px;border:2px solid #c9c2b4;border-radius:8px;text-align:center}
+.big{font-size:1.15rem}
+footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px}
+@media (max-width:560px){ body{font-size:16px} .expr{font-size:1.1rem} .ans input{width:50px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>🔬 Forscherlabor: Die binomischen Formeln</h1>
+  <p>Klasse 8 · Entdecke die drei Formeln selbst und trainiere sie. Deine Sterne werden in diesem Browser gespeichert.</p>
+  <nav id="nav">
+    <button data-s="start" class="active">Start</button>
+    <button data-s="st1">🔍 Station 1</button>
+    <button data-s="st2">🔍 Station 2</button>
+    <button data-s="st3">🔍 Station 3</button>
+    <button data-s="mix">✏️ Mix-Training</button>
+    <button data-s="detektiv">🔎 Fehlerdetektiv</button>
+    <button data-s="kopf">⭐ Kopfrechnen</button>
+    <button data-s="merk">💡 Merkblatt</button>
+  </nav>
+</header>
+
+<main>
+<!-- START -->
+<section id="start" class="active">
+  <div class="card">
+    <h2>Willkommen im Forscherlabor!</h2>
+    <p>Hier wiederholst du, was du im Forscherheft entdeckt hast. Du brauchst nur eine Fähigkeit: <b>Klammern ausmultiplizieren</b>. Jedes Glied der ersten Klammer wird mit jedem Glied der zweiten Klammer multipliziert:</p>
+    <div class="formula" style="--soft:#eef0f3;--accent:#1f2933">(a + b)(c + d) = ac + ad + bc + bd</div>
+    <p><b>So gibst du Ergebnisse ein:</b> Schreibe das ganze Ergebnis in das Feld, zum Beispiel <b>x² + 6x + 9</b>. Die Hochzahl ² bekommst du mit dem Knopf <b>²</b> neben dem Feld oder indem du <b>^2</b> tippst (x^2 + 6x + 9). Leerzeichen sind egal.</p>
+    <p class="muted">Tipp: Mit der Enter-Taste kannst du deine Antwort prüfen.</p>
+  </div>
+  <h3>Deine Stationen</h3>
+  <div class="grid3">
+    <div class="card lab s1 stationcard" data-go="st1"><span class="tag">Station 1</span><h3>(a + b)²</h3><p class="muted">Was passiert, wenn man eine Summe quadriert?</p><div class="stars" id="star-st1"></div></div>
+    <div class="card lab s2 stationcard" data-go="st2"><span class="tag">Station 2</span><h3>(a − b)²</h3><p class="muted">Und wenn ein Minus in der Klammer steht?</p><div class="stars" id="star-st2"></div></div>
+    <div class="card lab s3 stationcard" data-go="st3"><span class="tag">Station 3</span><h3>(a + b)(a − b)</h3><p class="muted">Ein Plus, ein Minus – und eine Überraschung.</p><div class="stars" id="star-st3"></div></div>
+  </div>
+  <div class="card"><b>Dein Fortschritt:</b> <span id="progress"></span> <button class="btn ghost" id="reset" style="margin-left:8px">Neu starten</button></div>
+</section>
+
+<!-- STATIONS (filled by script) -->
+<section id="st1"></section>
+<section id="st2"></section>
+<section id="st3"></section>
+
+<!-- MIX -->
+<section id="mix">
+  <div class="card lab" style="--accent:#6b4fc8;--soft:#eee9fb">
+    <span class="tag">Mix-Training</span>
+    <h2>Welche Formel passt?</h2>
+    <p>Alle drei Formeln gemischt. Erkenne zuerst die passende Formel, dann rechne aus.</p>
+    <div class="row levels" id="mixLevels"></div>
+    <div id="mixTask"></div>
+    <p class="muted">Richtig in Folge: <b id="mixStreak">0</b> · Insgesamt richtig: <b id="mixTotal">0</b></p>
+  </div>
+</section>
+
+<!-- DETEKTIV -->
+<section id="detektiv">
+  <div class="card lab" style="--accent:#b5651d;--soft:#f8ecdf">
+    <span class="tag">Fehlerdetektiv</span>
+    <h2>Richtig oder falsch?</h2>
+    <p>Prüfe jede Rechnung. Wenn sie falsch ist, überlege, welcher Fehler passiert ist.</p>
+    <div id="detList"></div>
+    <p><b>Ergebnis:</b> <span id="detScore">0</span> von <span id="detMax"></span></p>
+  </div>
+</section>
+
+<!-- KOPF -->
+<section id="kopf">
+  <div class="card lab" style="--accent:#c78a00;--soft:#fdf3d8">
+    <span class="tag">Knobeln</span>
+    <h2>Kopfrechnen mit Formeln</h2>
+    <p>Mit den binomischen Formeln kannst du schwierige Aufgaben im Kopf rechnen, zum Beispiel 21² = (20 + 1)² = 400 + 40 + 1 = 441.</p>
+    <div id="kopfTask"></div>
+    <p class="muted">Richtig: <b id="kopfTotal">0</b></p>
+  </div>
+</section>
+
+<!-- MERK -->
+<section id="merk">
+  <div class="card">
+    <h2>💡 Merkblatt</h2>
+    <p>Das hast du entdeckt:</p>
+    <div class="s1"><div class="formula">1. (a + b)² = a² + 2ab + b²</div></div>
+    <div class="s2"><div class="formula">2. (a − b)² = a² − 2ab + b²</div></div>
+    <div class="s3"><div class="formula">3. (a + b)(a − b) = a² − b²</div></div>
+    <h3>Typische Fehler</h3>
+    <table>
+      <tr><th>Falsch</th><th>Richtig</th><th>Darauf achten</th></tr>
+      <tr><td>(x + 5)² = x² + 25</td><td>x² + 10x + 25</td><td>Das gemischte Glied 2ab nicht vergessen.</td></tr>
+      <tr><td>(2x + 3)² = 2x² + …</td><td>4x² + …</td><td>Auch der Faktor wird quadriert: (2x)² = 4x².</td></tr>
+      <tr><td>(a − 4)² = a² − 8a − 16</td><td>a² − 8a + 16</td><td>Minus mal Minus ergibt Plus.</td></tr>
+      <tr><td>(x − 7)² = x² − 7x + 49</td><td>x² − 14x + 49</td><td>Das gemischte Glied verdoppeln.</td></tr>
+      <tr><td>(y + 6)(y − 6) = y² + 36</td><td>y² − 36</td><td>Bei der 3. Formel steht ein Minus.</td></tr>
+    </table>
+  </div>
+</section>
+</main>
+<footer>Forscherlabor Binomische Formeln · Mathematik Klasse 8</footer>
+
+<script>
+"use strict";
+/* ---------- Speicher (nur Komfort) ---------- */
+const STORE="binomLab_v1";
+let state={};
+try{ state=JSON.parse(localStorage.getItem(STORE)||"{}")||{}; }catch(e){ state={}; }
+function save(){ try{ localStorage.setItem(STORE,JSON.stringify(state)); }catch(e){} }
+
+/* ---------- Navigation ---------- */
+function show(id){
+  document.querySelectorAll("main>section").forEach(s=>s.classList.toggle("active",s.id===id));
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.s===id));
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>show(b.dataset.s));
+document.querySelectorAll("[data-go]").forEach(c=>c.onclick=()=>show(c.dataset.go));
+
+/* ---------- Hilfsfunktionen ---------- */
+const M="−";
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function mono(c,v){ if(!v) return String(c); return (c===1?"":String(c))+v; }
+function sq(v){ return v? v+"²" : ""; }
+function prod(u,w){ return (u||"")+(w||""); }
+/* Aufgabe: kind 1/2/3, A={c,v}, B={c,v}, swap (nur kind 3) */
+function makeTask(kind,A,B,swap){
+  const p=A.c,q=B.c,u=A.v,w=B.v;
+  let text, terms;
+  if(kind===1){ text=`(${mono(p,u)} + ${mono(q,w)})²`;
+    terms=[{lab:sq(u),val:p*p},{lab:prod(u,w),val:2*p*q},{lab:sq(w),val:q*q}]; }
+  else if(kind===2){ text=`(${mono(p,u)} ${M} ${mono(q,w)})²`;
+    terms=[{lab:sq(u),val:p*p},{lab:prod(u,w),val:-2*p*q},{lab:sq(w),val:q*q}]; }
+  else { const P=`(${mono(p,u)} + ${mono(q,w)})`, N=`(${mono(p,u)} ${M} ${mono(q,w)})`;
+    text= swap? N+P : P+N;
+    terms=[{lab:sq(u),val:p*p},{lab:sq(w),val:-q*q}]; }
+  return {kind,A,B,text,terms};
+}
+function polyStr(terms){
+  return terms.map((t,i)=>{
+    const a=Math.abs(t.val), s=t.val<0?M:"+";
+    const body = t.lab? (a===1?"":a)+t.lab : String(a);
+    return i===0 ? (t.val<0?M:"")+body : ` ${s} ${body}`;
+  }).join("");
+}
+function expandTip(task){
+  const {A,B,kind}=task, a=mono(A.c,A.v), b=mono(B.c,B.v);
+  if(kind===1) return `(${a} + ${b})(${a} + ${b}) = ${a}·${a} + ${a}·${b} + ${b}·${a} + ${b}·${b}`;
+  if(kind===2) return `(${a} ${M} ${b})(${a} ${M} ${b}) = ${a}·${a} ${M} ${a}·${b} ${M} ${b}·${a} + ${b}·${b}`;
+  return `${a}·${a} ${M} ${a}·${b} + ${b}·${a} ${M} ${b}·${b}  (die beiden mittleren Glieder heben sich auf!)`;
+}
+
+/* ---------- Eingabe-Bauteil ---------- */
+function buildTask(container, task, opts){
+  opts=opts||{};
+  const box=document.createElement("div"); box.className="task";
+  const ex=document.createElement("span"); ex.className="expr"; ex.textContent=task.text+" =";
+  const ans=document.createElement("span"); ans.className="ans";
+  const inp=document.createElement("input"); inp.type="text"; inp.className="term";
+  inp.autocomplete="off"; inp.spellcheck=false; inp.setAttribute("autocapitalize","off"); inp.setAttribute("autocorrect","off");
+  inp.placeholder="Ergebnis eingeben"; inp.setAttribute("aria-label","Ergebnis");
+  const sup=document.createElement("button"); sup.type="button"; sup.className="sign"; sup.textContent="²"; sup.title="Hochzahl ² einfügen"; sup.setAttribute("aria-label","Hochzahl hoch 2 einfügen");
+  sup.addEventListener("mousedown",e=>e.preventDefault());
+  sup.onclick=()=>{ const a=inp.selectionStart??inp.value.length, b=inp.selectionEnd??a;
+    inp.value=inp.value.slice(0,a)+"²"+inp.value.slice(b); inp.focus(); inp.setSelectionRange(a+1,a+1); };
+  ans.append(inp,sup);
+  const check=document.createElement("button"); check.className="btn"; check.textContent="Prüfen";
+  const tipB=document.createElement("button"); tipB.className="btn ghost"; tipB.textContent="Tipp";
+  const solB=document.createElement("button"); solB.className="btn ghost"; solB.textContent="Lösung"; solB.style.display="none";
+  const fb=document.createElement("div"); fb.className="fb";
+  const tip=document.createElement("div"); tip.className="tip"; tip.textContent="So geht's: "+expandTip(task);
+  box.append(ex,ans,check,tipB,solB,fb,tip);
+  container.appendChild(box);
+  let wrong=0, solved=false;
+  tipB.onclick=()=>{ tip.style.display = tip.style.display==="block"?"none":"block"; };
+  solB.onclick=()=>{ fb.className="fb"; fb.textContent="Lösung: "+task.text+" = "+polyStr(task.terms)+". Versuche danach eine neue Aufgabe."; if(opts.onShown) opts.onShown(); };
+  function doCheck(){
+    if(solved) return;
+    if(!inp.value.trim()){ fb.className="fb bad"; fb.textContent="Bitte gib dein Ergebnis ein."; return; }
+    const res=evaluate(task,inp.value);
+    if(res.ok){ solved=true; box.classList.add("done"); fb.className="fb ok"; fb.textContent=pick(["Richtig! 🎉","Super, stimmt! ✅","Genau so! 👍","Klasse gerechnet! ⭐"]);
+      inp.disabled=true; sup.disabled=true; check.disabled=true; tipB.disabled=true;
+      if(opts.onSolved) opts.onSolved(wrong===0); return; }
+    fb.className="fb bad"; fb.textContent=res.msg;
+    if(res.format) return;
+    wrong++;
+    if(wrong>=2) solB.style.display="";
+    if(opts.onWrong) opts.onWrong();
+  }
+  check.onclick=doCheck;
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") doCheck(); });
+  return box;
+}
+
+/* ---------- Eingabe auswerten ---------- */
+function parsePoly(raw){
+  let s=String(raw).toLowerCase().replace(/\s+/g,"").replace(/[−–]/g,"-").replace(/²/g,"^2").replace(/³/g,"^3").replace(/[·*⋅]/g,"");
+  if(!s) return null;
+  if(!/^[+-]/.test(s)) s="+"+s;
+  const parts=s.match(/[+-][^+-]*/g);
+  if(!parts||parts.join("")!==s) return null;
+  const out=[];
+  for(const p of parts){
+    const m=p.match(/^([+-])(\d*)((?:[a-z](?:\^\d+)?)*)$/);
+    if(!m||(!m[2]&&!m[3])) return null;
+    const ex={}; m[3].replace(/([a-z])(?:\^(\d+))?/g,(_,v,e)=>{ ex[v]=(ex[v]||0)+(e?Number(e):1); return ""; });
+    const sig=Object.keys(ex).sort().map(k=>k+(ex[k]>1?"^"+ex[k]:"")).join("");
+    out.push({coef:(m[1]==="-"?-1:1)*(m[2]?Number(m[2]):1), sig});
+  }
+  return out;
+}
+function sigOf(lab){ return lab? parsePoly(lab)[0].sig : ""; }
+function showSig(sig){ return sig.replace(/\^2/g,"²").replace(/\^3/g,"³"); }
+function missingMsg(task,i){
+  if(task.kind!==3 && i===1) return "Da fehlt das gemischte Glied in der Mitte!";
+  const base= i===0? task.A : task.B, m=mono(base.c,base.v);
+  if(!base.v) return `Die Zahl ohne Variable fehlt. Was ergibt ${base.c} · ${base.c}?`;
+  return `Ein Summand fehlt oder hat die falsche Hochzahl. Denke daran: ${m} · ${m} – vergiss das ² nicht!`;
+}
+function evaluate(task,raw){
+  const terms=parsePoly(raw);
+  if(!terms) return {format:true,msg:"Ich verstehe die Eingabe noch nicht. Schreibe zum Beispiel x² + 6x + 9. Die Hochzahl bekommst du mit dem Knopf ² oder mit ^2."};
+  const exp=task.terms.map(t=>({val:t.val,sig:sigOf(t.lab)}));
+  const expSigs=new Set(exp.map(e=>e.sig)), got={}, cnt={};
+  terms.forEach(t=>{ got[t.sig]=(got[t.sig]||0)+t.coef; cnt[t.sig]=(cnt[t.sig]||0)+1; });
+  const dup=Object.values(cnt).some(c=>c>1);
+  const extra=Object.keys(got).filter(k=>!expSigs.has(k));
+  if(!dup && !extra.length && exp.every(e=>got[e.sig]===e.val)) return {ok:true};
+  for(let i=0;i<exp.length;i++) if(!(exp[i].sig in got)) return {msg:missingMsg(task,i)};
+  if(extra.length){
+    if(task.kind===3 && extra.includes(sigOf(prod(task.A.v,task.B.v)))) return {msg:"Die beiden gemischten Glieder heben sich auf – sie fallen ganz weg!"};
+    return {msg:`Der Summand ${extra[0]?"mit "+showSig(extra[0]):"ohne Variable"} gehört hier nicht hin. Prüfe Variablen und Hochzahlen.`};
+  }
+  if(dup) return {msg:"Fasse gleichartige Summanden noch zusammen."};
+  return {msg:diagnose(task,exp.map(e=>got[e.sig]))};
+}
+
+function diagnose(task,v){
+  const p=task.A.c,q=task.B.c,k=task.kind, T=task.terms;
+  if(v[0]!==T[0].val){
+    if(p!==1 && v[0]===p) return "Schau auf den ersten Summanden: Auch der Faktor wird quadriert, z. B. (2x)² = 4x².";
+    if(v[0]===2*p) return "Quadrieren heißt mit sich selbst malnehmen, nicht verdoppeln.";
+    return "Der erste Summand stimmt noch nicht. Was ergibt das erste Glied mal sich selbst?";
+  }
+  if(k===3){
+    if(v[1]===-T[1].val) return "Achte auf das Vorzeichen: Bei (a + b)(a − b) steht zwischen den Quadraten ein Minus.";
+    if(Math.abs(v[1])===q && q!==1) return "Der zweite Summand muss quadriert werden.";
+    return "Der letzte Summand stimmt noch nicht. Was ergibt das zweite Glied mal sich selbst?";
+  }
+  if(v[1]!==T[1].val){
+    if(v[1]===0) return "Da fehlt das gemischte Glied in der Mitte!";
+    if(Math.abs(v[1])===p*q) return "Das gemischte Glied kommt zweimal vor – du musst es verdoppeln.";
+    if(v[1]===-T[1].val) return k===1? "Bei der 1. Formel steht vor dem gemischten Glied ein Plus." : "Bei der 2. Formel steht vor dem gemischten Glied ein Minus.";
+    return "Das gemischte Glied in der Mitte stimmt noch nicht. Tipp: 2 · erstes Glied · zweites Glied.";
+  }
+  if(v[2]!==T[2].val){
+    if(v[2]===-T[2].val) return "Der letzte Summand ist immer positiv – auch Minus mal Minus ergibt Plus!";
+    if(v[2]===2*q) return "Quadrieren heißt mit sich selbst malnehmen, nicht verdoppeln.";
+    return "Der letzte Summand stimmt noch nicht. Was ergibt das zweite Glied mal sich selbst?";
+  }
+  return "Noch nicht ganz. Prüfe die Vorzeichen!";
+}
+
+/* ---------- Multiple Choice ---------- */
+function buildMC(container, q, options, correct, explain, onRight){
+  const wrap=document.createElement("div");
+  const p=document.createElement("p"); p.innerHTML="<b>"+q+"</b>"; wrap.appendChild(p);
+  const mc=document.createElement("div"); mc.className="mc";
+  const fb=document.createElement("div"); fb.className="fb";
+  let done=false;
+  options.forEach((o,i)=>{ const b=document.createElement("button"); b.type="button"; b.textContent=o;
+    b.onclick=()=>{ if(done) return;
+      if(i===correct){ done=true; b.classList.add("right"); fb.className="fb ok"; fb.textContent="Richtig! "+(explain||""); if(onRight) onRight(); }
+      else { b.classList.add("wrong"); fb.className="fb bad"; fb.textContent="Das stimmt nicht. Schau dir deine Ergebnisse oben noch einmal an."; } };
+    mc.appendChild(b); });
+  wrap.append(mc,fb); container.appendChild(wrap); return wrap;
+}
+
+/* ---------- Generatoren ---------- */
+const VARS=["x","a","y","b","m"];
+const PAIRS=[["x","y"],["a","b"],["m","n"]];
+function gen(kind,level){
+  let A,B,swap=Math.random()<.5;
+  if(level===1){ const v=pick(VARS); A={c:1,v}; B={c:rnd(1,12),v:""};
+    if(kind!==3 && Math.random()<.2){ const t=A; A=B; B=t; } }
+  else if(level===2){ A={c:rnd(2,5),v:pick(VARS)}; B={c:rnd(1,9),v:""}; }
+  else { const pr=pick(PAIRS); A={c:rnd(1,5),v:pr[0]}; B={c:rnd(1,5),v:pr[1]}; if(A.c===B.c&&A.c===1) B.c=2; }
+  return makeTask(kind,A,B,swap);
+}
+
+/* ---------- Stationen ---------- */
+const STATIONS={
+  st1:{kind:1, cls:"s1", title:"Station 1: Was steckt hinter (a + b)²?",
+    intro:"(x + 3)² bedeutet (x + 3)·(x + 3). Rechne die Aufgaben aus. Nutze den Tipp-Knopf, wenn du nicht weiterkommst. Suche dann nach einem Muster!",
+    tasks:[[{c:1,v:"x"},{c:3,v:""}],[{c:1,v:"x"},{c:5,v:""}],[{c:1,v:"a"},{c:2,v:""}],[{c:1,v:"y"},{c:4,v:""}],[{c:1,v:"x"},{c:10,v:""}]],
+    questions:[
+      ["Der erste Summand im Ergebnis ist immer …",["das erste Glied mal 2","das Quadrat des ersten Glieds","das erste Glied"],1,"Zum Beispiel x · x = x²."],
+      ["Der letzte Summand im Ergebnis ist immer …",["das Quadrat der Zahl in der Klammer","das Doppelte der Zahl in der Klammer","die Zahl in der Klammer"],0,"Zum Beispiel 3 · 3 = 9."],
+      ["Der mittlere Summand ist …",["das Produkt der beiden Glieder","das Doppelte des Produkts der beiden Glieder","immer 0"],1,"Bei (x + 3)² entsteht 3x zweimal, also 2 · x · 3 = 6x."]],
+    formulaQ:["Welche Formel hast du entdeckt?",["(a + b)² = a² + b²","(a + b)² = a² + 2ab + b²","(a + b)² = a² + ab + b²"],1],
+    formula:"(a + b)² = a² + 2ab + b²",
+    check:(a,b)=>[(a+b)*(a+b), a*a+2*a*b+b*b, `(${a} + ${b})² = ${a+b}² = ${(a+b)*(a+b)}`, `${a}² + 2·${a}·${b} + ${b}² = ${a*a} + ${2*a*b} + ${b*b} = ${a*a+2*a*b+b*b}`]
+  },
+  st2:{kind:2, cls:"s2", title:"Station 2: Was passiert bei (a − b)²?",
+    intro:"Jetzt steht ein Minus in der Klammer. Rechne aus und vergleiche mit Station 1. Achte besonders auf die Vorzeichen!",
+    tasks:[[{c:1,v:"x"},{c:3,v:""}],[{c:1,v:"x"},{c:5,v:""}],[{c:1,v:"a"},{c:2,v:""}],[{c:1,v:"y"},{c:4,v:""}],[{c:1,v:"x"},{c:10,v:""}]],
+    questions:[
+      ["Vergleiche (x + 3)² = x² + 6x + 9 mit (x − 3)². Was hat sich geändert?",["Alle Vorzeichen sind Minus","Nur vor dem gemischten Glied steht jetzt ein Minus","Nichts"],1,"Die Quadrate bleiben gleich, nur das gemischte Glied wird negativ."],
+      ["Warum ist der letzte Summand positiv?",["Weil Minus mal Minus Plus ergibt","Weil man das Minus weglassen darf","Weil 9 immer positiv ist"],0,"(−3) · (−3) = +9."]],
+    formulaQ:["Welche Formel hast du entdeckt?",["(a − b)² = a² − b²","(a − b)² = a² − 2ab − b²","(a − b)² = a² − 2ab + b²"],2],
+    formula:"(a − b)² = a² − 2ab + b²",
+    check:(a,b)=>[(a-b)*(a-b), a*a-2*a*b+b*b, `(${a} ${M} ${b})² = ${a-b}² = ${(a-b)*(a-b)}`, `${a}² ${M} 2·${a}·${b} + ${b}² = ${a*a} ${M} ${2*a*b} + ${b*b} = ${a*a-2*a*b+b*b}`]
+  },
+  st3:{kind:3, cls:"s3", title:"Station 3: Ein Plus und ein Minus – (a + b)(a − b)",
+    intro:"In einer Klammer steht ein Plus, in der anderen ein Minus. Rechne aus. Es passiert etwas Überraschendes!",
+    tasks:[[{c:1,v:"x"},{c:3,v:""},false],[{c:1,v:"x"},{c:5,v:""},false],[{c:1,v:"a"},{c:2,v:""},false],[{c:1,v:"y"},{c:4,v:""},true],[{c:1,v:"x"},{c:10,v:""},false]],
+    questions:[
+      ["Was passiert mit den beiden mittleren Summanden?",["Sie verdoppeln sich","Sie heben sich gegenseitig auf","Sie werden quadriert"],1,"−3x + 3x = 0."],
+      ["Spielt es eine Rolle, ob die Plus-Klammer vorne oder hinten steht?",["Ja, dann ändert sich das Ergebnis","Nein, das Ergebnis ist gleich"],1,"Beim Multiplizieren darf man die Faktoren vertauschen."]],
+    formulaQ:["Welche Formel hast du entdeckt?",["(a + b)(a − b) = a² − b²","(a + b)(a − b) = a² + b²","(a + b)(a − b) = a² − 2ab − b²"],0],
+    formula:"(a + b)(a − b) = a² − b²",
+    check:(a,b)=>[(a+b)*(a-b), a*a-b*b, `(${a} + ${b})(${a} ${M} ${b}) = ${a+b} · ${a-b} = ${(a+b)*(a-b)}`, `${a}² ${M} ${b}² = ${a*a} ${M} ${b*b} = ${a*a-b*b}`]
+  }
+};
+
+function stars(id){ return (state[id]&&state[id].stars)||0; }
+function addStar(id,max){ state[id]=state[id]||{}; state[id].stars=Math.min(max,(state[id].stars||0)+1); save(); refreshStars(); }
+function refreshStars(){
+  ["st1","st2","st3"].forEach(id=>{ const n=stars(id); const el=document.getElementById("star-"+id); if(el) el.textContent="★".repeat(n)+"☆".repeat(5-n); });
+  const found=["st1","st2","st3"].filter(id=>state[id]&&state[id].found).length;
+  document.getElementById("progress").textContent=`${found} von 3 Formeln entdeckt · ${stars("st1")+stars("st2")+stars("st3")} von 15 Sternen`;
+}
+
+function buildStation(id){
+  const S=STATIONS[id], sec=document.getElementById(id);
+  sec.innerHTML="";
+  /* Forschungsauftrag */
+  const c1=document.createElement("div"); c1.className="card lab "+S.cls;
+  c1.innerHTML=`<span class="tag">🔍 Forschungsauftrag</span><h2>${S.title}</h2><p>${S.intro}</p>`;
+  sec.appendChild(c1);
+  const tl=document.createElement("div"); c1.appendChild(tl);
+  let solvedCount=0;
+  /* Beobachtung */
+  const c2=document.createElement("div"); c2.className="card lab "+S.cls+" locked";
+  c2.innerHTML=`<span class="tag">Beobachte genau</span><h2>Was fällt dir auf?</h2><p class="muted">Löse zuerst alle Aufgaben oben.</p>`;
+  /* Entdeckung */
+  const c3=document.createElement("div"); c3.className="card lab "+S.cls+" locked";
+  c3.innerHTML=`<span class="tag">💡 Entdeckung</span><h2>Deine Formel</h2>`;
+  /* Training */
+  const c4=document.createElement("div"); c4.className="card lab "+S.cls+" locked";
+  c4.innerHTML=`<span class="tag">✏️ Übungen</span><h2>Jetzt wird trainiert</h2><p>Wähle eine Stufe. Für 5 richtige Aufgaben ohne Fehler in Folge bekommst du einen Stern.</p>`;
+  S.tasks.forEach(t=>{
+    const task=makeTask(S.kind,t[0],t[1],t[2]);
+    buildTask(tl,task,{onSolved:()=>{ solvedCount++; if(solvedCount===S.tasks.length){ c2.classList.remove("locked"); c2.querySelector(".muted").textContent="Beantworte die Fragen."; c2.scrollIntoView({behavior:"smooth",block:"start"}); } }});
+  });
+  sec.append(c2,c3,c4);
+  let qRight=0;
+  S.questions.forEach(q=>buildMC(c2,q[0],q[1],q[2],q[3],()=>{ qRight++; if(qRight===S.questions.length){ c3.classList.remove("locked"); } }));
+  /* Formel wählen */
+  const fWrap=document.createElement("div"); c3.appendChild(fWrap);
+  const reveal=document.createElement("div"); reveal.style.display="none"; c3.appendChild(reveal);
+  buildMC(fWrap,S.formulaQ[0],S.formulaQ[1],S.formulaQ[2],"",()=>{
+    reveal.style.display=""; c4.classList.remove("locked");
+    state[id]=state[id]||{}; state[id].found=true; save(); refreshStars();
+  });
+  reveal.innerHTML=`<div class="formula">${S.formula}</div>
+    <h3>Forscher-Check mit Zahlen</h3><p>Setze Zahlen für a und b ein. Stimmen beide Seiten immer überein?</p>
+    <div class="row">a = <input class="num" type="number" value="7" data-a> b = <input class="num" type="number" value="3" data-b></div>
+    <p class="big" data-out></p>`;
+  const ia=reveal.querySelector("[data-a]"), ib=reveal.querySelector("[data-b]"), out=reveal.querySelector("[data-out]");
+  function upd(){ const a=parseInt(ia.value,10), b=parseInt(ib.value,10); if(isNaN(a)||isNaN(b)){ out.textContent=""; return; }
+    const r=S.check(a,b); out.innerHTML=`Linke Seite: ${r[2]}<br>Rechte Seite: ${r[3]}<br>${r[0]===r[1]?"✅ Beide Seiten sind gleich!":"❌"}`; }
+  ia.oninput=ib.oninput=upd; upd();
+  if(id==="st1") reveal.appendChild(areaModel());
+  if(id==="st3"){ const p=document.createElement("p"); p.innerHTML="<b>Warum?</b> Beim Ausmultiplizieren entsteht einmal −ab und einmal +ab. Zusammen ergibt das 0. Übrig bleiben nur die Quadrate."; reveal.appendChild(p); }
+  if(id==="st2"){ const p=document.createElement("p"); p.innerHTML="<b>Warum?</b> Das gemischte Glied −ab entsteht zweimal, also −2ab. Am Ende rechnet man (−b)·(−b) = +b²."; reveal.appendChild(p); }
+  /* Training */
+  const lv=document.createElement("div"); lv.className="row levels"; c4.appendChild(lv);
+  const area=document.createElement("div"); c4.appendChild(area);
+  const info=document.createElement("p"); info.className="muted"; c4.appendChild(info);
+  let level=1, streak=0;
+  const names=["Stufe 1: (x + 3)","Stufe 2: (2x + 3)","Stufe 3: (2x + 3y)"];
+  names.forEach((n,i)=>{ const b=document.createElement("button"); b.textContent=n; if(i===0) b.className="on";
+    b.onclick=()=>{ level=i+1; lv.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); next(); }; lv.appendChild(b); });
+  function next(){
+    area.innerHTML="";
+    buildTask(area,gen(S.kind,level),{
+      onSolved:(first)=>{ if(first){ streak++; } else streak=0;
+        if(streak>=5){ streak=0; addStar(id,5); info.textContent="⭐ Stern verdient! Weiter so."; } else info.textContent=`Richtig in Folge: ${streak} von 5`;
+        const nb=document.createElement("button"); nb.className="btn"; nb.textContent="Nächste Aufgabe"; nb.style.marginTop="6px"; nb.onclick=next; area.appendChild(nb); nb.focus(); },
+      onWrong:()=>{ streak=0; info.textContent="Richtig in Folge: 0 von 5"; },
+      onShown:()=>{ streak=0; const nb=document.createElement("button"); nb.className="btn"; nb.textContent="Neue Aufgabe"; nb.onclick=next; area.appendChild(nb); }
+    });
+    info.textContent=`Richtig in Folge: ${streak} von 5`;
+  }
+  next();
+  /* Wer schon entdeckt hat, darf direkt trainieren */
+  if(state[id]&&state[id].found){
+    const skip=document.createElement("button"); skip.className="btn ghost"; skip.textContent="Schon entdeckt – direkt zu den Übungen";
+    skip.onclick=()=>{ c2.classList.remove("locked"); c3.classList.remove("locked"); c4.classList.remove("locked"); reveal.style.display=""; c4.scrollIntoView({behavior:"smooth"}); };
+    c1.insertBefore(skip,tl);
+  }
+}
+
+/* ---------- Flächenmodell ---------- */
+function areaModel(){
+  const w=document.createElement("div");
+  w.innerHTML=`<h3>Forscher-Check mit Flächen</h3>
+  <p>Ein Quadrat mit der Seitenlänge a + b besteht aus vier Teilflächen. Verschiebe die Regler!</p>
+  <div class="row">a = <input type="range" min="1" max="8" value="5" data-ra> <b data-va>5</b> &nbsp; b = <input type="range" min="1" max="8" value="3" data-rb> <b data-vb>3</b></div>
+  <svg viewBox="0 0 320 320" style="width:100%;max-width:340px;display:block;margin:10px auto" data-svg></svg>
+  <p class="big" data-sum style="text-align:center"></p>`;
+  const ra=w.querySelector("[data-ra]"), rb=w.querySelector("[data-rb]"), svg=w.querySelector("[data-svg]");
+  function draw(){
+    const a=+ra.value,b=+rb.value; w.querySelector("[data-va]").textContent=a; w.querySelector("[data-vb]").textContent=b;
+    const s=280/(a+b), A=a*s, B=b*s, o=20;
+    const r=(x,y,ww,hh,f,t)=>`<rect x="${x}" y="${y}" width="${ww}" height="${hh}" fill="${f}" stroke="#1f2933" stroke-width="2"/><text x="${x+ww/2}" y="${y+hh/2+6}" text-anchor="middle" font-size="${Math.max(12,Math.min(20,Math.min(ww,hh)/3))}" font-weight="700" fill="#1f2933">${t}</text>`;
+    svg.innerHTML = r(o,o,A,A,"#c9dbfa","a² = "+a*a)+r(o+A,o,B,A,"#fde3a7","ab = "+a*b)+r(o,o+A,A,B,"#fde3a7","ab = "+a*b)+r(o+A,o+A,B,B,"#c7ead6","b² = "+b*b)
+      + `<text x="${o+A/2}" y="14" text-anchor="middle" font-size="13">a</text><text x="${o+A+B/2}" y="14" text-anchor="middle" font-size="13">b</text>`
+      + `<text x="8" y="${o+A/2}" font-size="13">a</text><text x="8" y="${o+A+B/2}" font-size="13">b</text>`;
+    w.querySelector("[data-sum]").textContent=`(${a} + ${b})² = ${(a+b)**2}   und   ${a*a} + ${a*b} + ${a*b} + ${b*b} = ${(a+b)**2}`;
+  }
+  ra.oninput=rb.oninput=draw; draw(); return w;
+}
+
+/* ---------- Mix-Training ---------- */
+(function(){
+  const lv=document.getElementById("mixLevels"), area=document.getElementById("mixTask");
+  let level=1, streak=0, total=0;
+  ["Stufe 1","Stufe 2","Stufe 3"].forEach((n,i)=>{ const b=document.createElement("button"); b.textContent=n; if(i===0)b.className="on";
+    b.onclick=()=>{ level=i+1; lv.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); next(); }; lv.appendChild(b); });
+  function next(){
+    area.innerHTML="";
+    const kind=rnd(1,3), task=gen(kind,level);
+    const holder=document.createElement("div"); area.appendChild(holder);
+    const p=document.createElement("p"); p.innerHTML=`<span class="expr">${task.text}</span>`; holder.appendChild(p);
+    buildMC(holder,"Welche binomische Formel passt?",["1. Formel: (a + b)²","2. Formel: (a − b)²","3. Formel: (a + b)(a − b)"],kind-1,"",()=>{
+      buildTask(holder,task,{
+        onSolved:(first)=>{ total++; streak = first? streak+1 : 0; document.getElementById("mixStreak").textContent=streak; document.getElementById("mixTotal").textContent=total;
+          const nb=document.createElement("button"); nb.className="btn"; nb.textContent="Nächste Aufgabe"; nb.onclick=next; holder.appendChild(nb); nb.focus(); },
+        onWrong:()=>{ streak=0; document.getElementById("mixStreak").textContent=0; },
+        onShown:()=>{ const nb=document.createElement("button"); nb.className="btn"; nb.textContent="Neue Aufgabe"; nb.onclick=next; holder.appendChild(nb); }
+      });
+    });
+  }
+  next();
+})();
+
+/* ---------- Fehlerdetektiv ---------- */
+(function(){
+  const items=[
+    ["(x + 5)² = x² + 25",false,"Das gemischte Glied fehlt. Richtig: x² + 10x + 25."],
+    ["(a − 4)² = a² − 8a + 16",true,"Richtig nach der 2. Formel."],
+    ["(2x + 3)² = 2x² + 12x + 9",false,"(2x)² = 4x². Richtig: 4x² + 12x + 9."],
+    ["(y + 6)(y − 6) = y² − 36",true,"Richtig nach der 3. Formel."],
+    ["(x − 7)² = x² − 14x − 49",false,"(−7)·(−7) = +49. Richtig: x² − 14x + 49."],
+    ["(3a + 1)² = 9a² + 6a + 1",true,"Richtig: (3a)² = 9a², 2·3a·1 = 6a."],
+    ["(x + 2)(x − 2) = x² − 4x − 4",false,"Die gemischten Glieder heben sich auf. Richtig: x² − 4."],
+    ["(m − 1)² = m² − 2m + 1",true,"Richtig nach der 2. Formel."],
+    ["(x + 9)² = x² + 9x + 81",false,"Das gemischte Glied muss verdoppelt werden. Richtig: x² + 18x + 81."],
+    ["(5 − b)(5 + b) = 25 − b²",true,"Richtig nach der 3. Formel."]
+  ];
+  const list=document.getElementById("detList"); let score=0;
+  document.getElementById("detMax").textContent=items.length;
+  items.forEach(it=>{
+    const box=document.createElement("div"); box.className="task";
+    box.innerHTML=`<span class="expr">${it[0]}</span>`;
+    const r=document.createElement("button"); r.className="btn"; r.textContent="richtig"; r.style.background="#2e9e6a";
+    const f=document.createElement("button"); f.className="btn"; f.textContent="falsch"; f.style.background="#d9534f";
+    const fb=document.createElement("div"); fb.className="fb";
+    function answer(v){ r.disabled=f.disabled=true;
+      if(v===it[1]){ score++; box.classList.add("done"); fb.className="fb ok"; fb.textContent="Gut erkannt! "+it[2]; }
+      else { fb.className="fb bad"; fb.textContent="Leider nicht. "+it[2]; }
+      document.getElementById("detScore").textContent=score; }
+    r.onclick=()=>answer(true); f.onclick=()=>answer(false);
+    box.append(r,f,fb); list.appendChild(box);
+  });
+})();
+
+/* ---------- Kopfrechnen ---------- */
+(function(){
+  const area=document.getElementById("kopfTask"); let total=0;
+  function next(){
+    area.innerHTML="";
+    const k=rnd(1,3), base=rnd(2,9)*10, d=rnd(1,2);
+    let q,ans,hint;
+    if(k===1){ q=`${base+d}²`; ans=(base+d)**2; hint=`(${base} + ${d})² = ${base*base} + ${2*base*d} + ${d*d}`; }
+    else if(k===2){ q=`${base-d}²`; ans=(base-d)**2; hint=`(${base} ${M} ${d})² = ${base*base} ${M} ${2*base*d} + ${d*d}`; }
+    else { q=`${base-d} · ${base+d}`; ans=(base-d)*(base+d); hint=`(${base} ${M} ${d})(${base} + ${d}) = ${base*base} ${M} ${d*d}`; }
+    const box=document.createElement("div"); box.className="task";
+    box.innerHTML=`<span class="expr">${q} =</span>`;
+    const inp=document.createElement("input"); inp.className="num"; inp.style.width="90px"; inp.inputMode="numeric";
+    const b=document.createElement("button"); b.className="btn"; b.textContent="Prüfen";
+    const t=document.createElement("button"); t.className="btn ghost"; t.textContent="Tipp";
+    const fb=document.createElement("div"); fb.className="fb";
+    box.append(inp,b,t,fb); area.appendChild(box); inp.focus();
+    t.onclick=()=>{ fb.className="fb"; fb.textContent="Tipp: "+hint; };
+    function chk(){ if(Number(inp.value)===ans){ total++; document.getElementById("kopfTotal").textContent=total; box.classList.add("done"); fb.className="fb ok"; fb.textContent="Richtig! "+hint+" = "+ans;
+        b.disabled=true; inp.disabled=true; const nb=document.createElement("button"); nb.className="btn"; nb.textContent="Nächste Aufgabe"; nb.onclick=next; area.appendChild(nb); nb.focus(); }
+      else { fb.className="fb bad"; fb.textContent="Noch nicht. Zerlege die Zahl geschickt: "+hint; } }
+    b.onclick=chk; inp.addEventListener("keydown",e=>{ if(e.key==="Enter") chk(); });
+  }
+  next();
+})();
+
+/* ---------- Start ---------- */
+["st1","st2","st3"].forEach(buildStation);
+document.getElementById("reset").onclick=()=>{ if(confirm("Alle Sterne und Fortschritte löschen?")){ state={}; save(); ["st1","st2","st3"].forEach(buildStation); refreshStars(); } };
+refreshStars();
+</script>
+</body>
+</html>
