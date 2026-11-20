@@ -39,6 +39,7 @@ section{display:none} section.active{display:block}
 .btn.ghost{background:transparent;color:var(--accent,#2f6fdf);border:2px solid var(--accent,#2f6fdf);padding:6px 12px}
 .btn:disabled{opacity:.45;cursor:default}
 .fb{width:100%;font-size:.95rem;min-height:1.4em}
+.fb:empty{display:none}
 .fb.ok{color:var(--ok);font-weight:600} .fb.bad{color:var(--bad)}
 .tip{width:100%;font-size:.95rem;background:#fff8e6;border:1px dashed var(--gold);border-radius:8px;padding:8px 10px;display:none}
 .formula{font-size:1.5rem;font-weight:700;text-align:center;padding:14px;border-radius:12px;background:var(--soft,#eef);color:var(--accent,#333);margin:10px 0}
@@ -58,6 +59,19 @@ table{border-collapse:collapse;width:100%} td,th{border:1px solid var(--line);pa
 input[type=range]{width:160px}
 .num{width:64px;font:inherit;padding:4px;border:2px solid #c9c2b4;border-radius:8px;text-align:center}
 .big{font-size:1.15rem}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+.legend span{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;font-weight:700;font-size:1.05rem}
+.legend b{display:inline-flex;width:24px;height:24px;border-radius:50%;color:#fff;align-items:center;justify-content:center;font-size:.85rem}
+.lg1{background:var(--c1s);color:#1a4a99}.lg1 b{background:var(--c1)}
+.lg2{background:var(--c2s);color:#932f1c}.lg2 b{background:var(--c2)}
+.lg3{background:var(--c3s);color:#156443}.lg3 b{background:var(--c3)}
+.fb3{display:flex;gap:6px;margin-left:auto}
+.fb3 button{width:44px;height:44px;border-radius:50%;border:2.5px solid;background:#fff;font:inherit;font-weight:800;font-size:1.1rem;cursor:pointer}
+.fb3 .k1{border-color:var(--c1);color:#1a4a99}.fb3 .k2{border-color:var(--c2);color:#932f1c}.fb3 .k3{border-color:var(--c3);color:#156443}
+.fb3 button.pickR{color:#fff}.fb3 .k1.pickR{background:var(--c1)}.fb3 .k2.pickR{background:var(--c2)}.fb3 .k3.pickR{background:var(--c3)}
+.fb3 button.pickW{background:#fdeceb;border-style:dashed;text-decoration:line-through}
+.fb3 button:disabled{cursor:default}
+.task.wrongT{background:#fdf3f2;border-color:#f0c4bf}
 footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px}
 @media (max-width:560px){ body{font-size:16px} .expr{font-size:1.1rem} .ans input{width:50px} }
 </style>
@@ -71,6 +85,7 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px}
     <button data-s="st1">🔍 Station 1</button>
     <button data-s="st2">🔍 Station 2</button>
     <button data-s="st3">🔍 Station 3</button>
+    <button data-s="erkennen">🧩 Formeln erkennen</button>
     <button data-s="mix">✏️ Mix-Training</button>
     <button data-s="detektiv">🔎 Fehlerdetektiv</button>
     <button data-s="kopf">⭐ Kopfrechnen</button>
@@ -94,6 +109,7 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px}
     <div class="card lab s2 stationcard" data-go="st2"><span class="tag">Station 2</span><h3>(a − b)²</h3><p class="muted">Und wenn ein Minus in der Klammer steht?</p><div class="stars" id="star-st2"></div></div>
     <div class="card lab s3 stationcard" data-go="st3"><span class="tag">Station 3</span><h3>(a + b)(a − b)</h3><p class="muted">Ein Plus, ein Minus – und eine Überraschung.</p><div class="stars" id="star-st3"></div></div>
   </div>
+  <div class="card lab stationcard" data-go="erkennen" style="--accent:#6a4bc4;--soft:#ece6fa"><span class="tag">Training</span><h3>🧩 Welche Formel ist es?</h3><p class="muted">Erkenne die passende binomische Formel – in drei Stufen.</p><div id="erkBest" class="muted"></div></div>
   <div class="card"><b>Dein Fortschritt:</b> <span id="progress"></span> <button class="btn ghost" id="reset" style="margin-left:8px">Neu starten</button></div>
 </section>
 
@@ -101,6 +117,26 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px}
 <section id="st1"></section>
 <section id="st2"></section>
 <section id="st3"></section>
+
+<!-- ERKENNEN -->
+<section id="erkennen">
+  <div class="card lab" style="--accent:#6a4bc4;--soft:#ece6fa">
+    <span class="tag">Formeln erkennen</span>
+    <h2>Welche binomische Formel ist es?</h2>
+    <p>Tippe bei jeder Aufgabe auf die passende Formel. Du musst nichts ausrechnen.</p>
+    <div class="legend">
+      <span class="lg1"><b>1</b> (a + b)²</span><span class="lg2"><b>2</b> (a − b)²</span><span class="lg3"><b>3</b> (a + b)(a − b)</span>
+    </div>
+    <div class="row levels" id="erkLevels"></div>
+    <p class="muted" id="erkInfo"></p>
+    <div id="erkList"></div>
+    <div class="row" style="margin-top:12px">
+      <b>Ergebnis: <span id="erkScore">0</span> von <span id="erkMax">10</span></b>
+      <button class="btn" id="erkNew">Neue Zufallsaufgaben</button>
+      <button class="btn ghost" id="erkOrig">Aufgaben aus dem Heft</button>
+    </div>
+  </div>
+</section>
 
 <!-- MIX -->
 <section id="mix">
@@ -156,7 +192,7 @@ footer{text-align:center;color:var(--muted);font-size:.85rem;padding:20px}
   </div>
 </section>
 </main>
-<footer>Forscherlabor Binomische Formeln · Mathematik Klasse 8</footer>
+<footer>Forscherlabor Binomische Formeln · Mathematik Klasse 8 · Version 3 (20.11.2026)</footer>
 
 <script>
 "use strict";
@@ -560,6 +596,66 @@ function areaModel(){
     b.onclick=chk; inp.addEventListener("keydown",e=>{ if(e.key==="Enter") chk(); });
   }
   next();
+})();
+
+/* ---------- Formeln erkennen ---------- */
+(function(){
+  const HEFT={
+    1:[["(x + 4)²",1,"sq"],["(a − 6)²",2,"sq"],["(y + 5)(y − 5)",3,"pm"],["(x + 3)(x + 3)",1,"pp"],["(b − 2)(b + 2)",3,"pm"],["(m − 7)(m − 7)",2,"pp"],["(2x + 1)²",1,"sq"],["(a + 9)(a − 9)",3,"pm"],["(3y − 4)²",2,"sq"],["(x − 1)(x + 1)",3,"pm"]],
+    2:[["x² + 10x + 25",1,"ex"],["a² − 8a + 16",2,"ex"],["y² − 49",3,"ex"],["x² + 2x + 1",1,"ex"],["b² − 100",3,"ex"],["m² − 14m + 49",2,"ex"],["4x² + 12x + 9",1,"ex"],["9a² − 6a + 1",2,"ex"],["25 − x²",3,"ex"],["x² + 6xy + 9y²",1,"ex"]],
+    3:[["(x − 8)²",2,"sq"],["a² + 18a + 81",1,"ex"],["(4 + y)(4 − y)",3,"pm"],["16x² − 9",3,"ex"],["(b + 6)(b + 6)",1,"pp"],["x² − 20x + 100",2,"ex"],["(5a + 2b)(5a − 2b)",3,"pm"],["1 + 2y + y²",1,"ex"],["(3x − 2)(3x − 2)",2,"pp"],["49 − 14m + m²",2,"ex"]]
+  };
+  const NAMES=["","1. Formel","2. Formel","3. Formel"];
+  function why(k,f){
+    if(f==="sq") return k===1? "Eine Summe in der Klammer wird quadriert → 1. Formel." : "Eine Differenz in der Klammer wird quadriert → 2. Formel.";
+    if(f==="pp") return k===1? "Zweimal dieselbe Plus-Klammer: (a + b)(a + b) = (a + b)² → 1. Formel." : "Zweimal dieselbe Minus-Klammer: (a − b)(a − b) = (a − b)² → 2. Formel.";
+    if(f==="pm") return "Gleiche Glieder, einmal mit Plus, einmal mit Minus → 3. Formel.";
+    if(k===1) return "Drei Summanden, alle mit Plus → 1. Formel.";
+    if(k===2) return "Drei Summanden, vor dem gemischten Glied steht ein Minus → 2. Formel.";
+    return "Nur zwei Quadrate mit Minus dazwischen, kein gemischtes Glied → 3. Formel.";
+  }
+  function randItem(stage){
+    const k=rnd(1,3), lv=rnd(1,3), t=gen(k,lv);
+    let form;
+    if(stage===1) form = k===3? "pm" : pick(["sq","pp"]);
+    else if(stage===2) form="ex";
+    else form = Math.random()<.5? "ex" : (k===3? "pm" : pick(["sq","pp"]));
+    if(form==="ex"){
+      const terms = (k!==3 && Math.random()<.25)? t.terms.slice().reverse() : t.terms;
+      return [polyStr(terms),k,form];
+    }
+    if(form==="pp"){ const a=mono(t.A.c,t.A.v), b=mono(t.B.c,t.B.v), op=k===1?"+":M; return [`(${a} ${op} ${b})(${a} ${op} ${b})`,k,form]; }
+    return [t.text,k,form];
+  }
+  const lv=document.getElementById("erkLevels"), list=document.getElementById("erkList"), info=document.getElementById("erkInfo");
+  let stage=1, score=0, answered=0, items=[];
+  const infos={1:"Stufe 1: Die Aufgaben stehen in Klammerform – mit Hochzahl oder als Klammer mal Klammer.",2:"Stufe 2: Die Aufgaben sind schon ausmultipliziert. Achte auf die Anzahl der Summanden und die Vorzeichen.",3:"Stufe 3: Alles gemischt."};
+  ["Stufe 1 ★","Stufe 2 ★★","Stufe 3 ★★★"].forEach((n,i)=>{ const b=document.createElement("button"); b.textContent=n; if(i===0)b.className="on";
+    b.onclick=()=>{ stage=i+1; lv.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); load(HEFT[stage]); }; lv.appendChild(b); });
+  function best(){ const b=(state.erk||{}); document.getElementById("erkBest").textContent=[1,2,3].map(i=>`Stufe ${i}: ${b[i]!=null?b[i]+"/10":"–"}`).join(" · "); }
+  function load(arr){
+    items=arr; score=0; answered=0; list.innerHTML=""; info.textContent=infos[stage];
+    document.getElementById("erkScore").textContent=0; document.getElementById("erkMax").textContent=arr.length;
+    arr.forEach((it,idx)=>{
+      const box=document.createElement("div"); box.className="task";
+      const ex=document.createElement("span"); ex.className="expr"; ex.textContent=(idx+1)+")  "+it[0];
+      const btns=document.createElement("span"); btns.className="fb3";
+      const fb=document.createElement("div"); fb.className="fb";
+      [1,2,3].forEach(k=>{ const b=document.createElement("button"); b.type="button"; b.className="k"+k; b.textContent=k; b.setAttribute("aria-label",NAMES[k]);
+        b.onclick=()=>{ btns.querySelectorAll("button").forEach(x=>x.disabled=true);
+          const right=btns.querySelector(".k"+it[1]); right.classList.add("pickR");
+          if(k===it[1]){ score++; box.classList.add("done"); fb.className="fb ok"; fb.textContent="Richtig! "+why(it[1],it[2]); }
+          else { b.classList.add("pickW"); box.classList.add("wrongT"); fb.className="fb bad"; fb.textContent=`Nicht ganz – es ist die ${NAMES[it[1]]}. `+why(it[1],it[2]); }
+          answered++; document.getElementById("erkScore").textContent=score;
+          if(answered===items.length){ state.erk=state.erk||{}; state.erk[stage]=Math.max(state.erk[stage]||0,score); save(); best();
+            info.textContent = score===items.length? "🎉 Alles richtig! Probiere die nächste Stufe oder neue Zufallsaufgaben." : `Fertig: ${score} von ${items.length} richtig. Schau dir die Erklärungen an und versuche neue Aufgaben.`; }
+        }; btns.appendChild(b); });
+      box.append(ex,btns,fb); list.appendChild(box);
+    });
+  }
+  document.getElementById("erkNew").onclick=()=>{ const a=[]; while(a.length<10){ const it=randItem(stage); if(!a.some(x=>x[0]===it[0])) a.push(it); } load(a); };
+  document.getElementById("erkOrig").onclick=()=>load(HEFT[stage]);
+  best(); load(HEFT[1]);
 })();
 
 /* ---------- Start ---------- */
